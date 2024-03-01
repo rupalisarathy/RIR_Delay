@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import math
 
 def cartesian_distance(point1, point2):
@@ -19,14 +19,6 @@ def spherical_distance(point1, point2):
 
     return d
 
-rir_delay.spherical_distance(m1_coords, m2_coords)
-m1_coords = [0.042, 45, 35]
-m2_coords = [0.042, -45, -35]
-m3_coords = [0.042, 135, -35]
-m4_coords = [0.042, -135, 35]
-
-mic_coords = [m1_coords, m2_coords, m3_coords, m4_coords]
-
 def distance_to_seconds(distance):
     '''
     compute the time it takes sound to travel
@@ -40,12 +32,10 @@ def shift_ir(ir, delay):
     '''
     takes an IR and shifts it a certain number
     of samples based on argument 'delay'
-    '''
-    #CODE
-    
-     if delay < 0:
+    '''    
+    if delay < 0:
         raise ValueError("Delay should be a non-negative integer.")
-    if not ir:
+    if not ir.any():
         raise ValueError("Input IR should not be empty.")
     shifted_ir = np.concatenate((np.zeros(delay), ir[:-delay]))
     return shifted_ir
@@ -71,24 +61,34 @@ def spatial_rir(mono_ir, sr, mic_positions, source_position):
 
     return spatial_rir
 
-# Load mono-channel IR and sample rate
-mono_ir, sr = lr.load("mono_ir.wav")
+if __name__ == "__main__":
+    
+    m1_coords = [0.042, 45, 35]
+    m2_coords = [0.042, -45, -35]
+    m3_coords = [0.042, 135, -35]
+    m4_coords = [0.042, -135, 35]
+    spherical_distance(m1_coords, m2_coords)
+   
 
-# Define microphone positions and source position (example source - NOT SURE HOW TO EXTRACT THIS!)
-#mic_positions = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 1]])
-source_position = np.array([2, 2, 2])
+    mic_coords = [m1_coords, m2_coords, m3_coords, m4_coords]
+    # Load mono-channel IR and sample rate
+    mono_ir, sr = lr.load("mono_ir.wav")
 
-# Create spatial RIR
-spatial_rir_result = spatial_rir(mono_ir, sr, mic_coords, source_position)
+    # Define microphone positions and source position (example source - NOT SURE HOW TO EXTRACT THIS!)
+    #mic_positions = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 1]])
+    source_position = np.array([2, 2, 2])
 
-# Plot and listen to the spatial RIR
-plt.figure(figsize=(10, 6))
-plt.imshow(spatial_rir_result, aspect='auto', cmap='viridis')
-plt.title('Spatial RIR')
-plt.xlabel('Time (samples)')
-plt.ylabel('Microphone Index')
-plt.colorbar(label='Amplitude')
-plt.show()
+    # Create spatial RIR
+    spatial_rir_result = spatial_rir(mono_ir, sr, mic_coords, source_position)
 
-# Play the spatial RIR
-Audio(data=np.sum(spatial_rir_result, axis=0), rate=sr)
+    # Plot and listen to the spatial RIR
+    plt.figure(figsize=(10, 6))
+    plt.imshow(spatial_rir_result, aspect='auto', cmap='viridis')
+    plt.title('Spatial RIR')
+    plt.xlabel('Time (samples)')
+    plt.ylabel('Microphone Index')
+    plt.colorbar(label='Amplitude')
+    plt.show()
+
+    # Play the spatial RIR
+    Audio(data=np.sum(spatial_rir_result, axis=0), rate=sr)
